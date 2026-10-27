@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Callbacks vs. Promises</title>
+<title>Promises, Async y Await</title>
 <style>
 * { box-sizing: border-box; }
 body { margin: 0; background: #0d1422; color: #edf2fa; font-family: Arial, sans-serif; }
 header { background: #192842; padding: 22px; }
 main { max-width: 1100px; margin: auto; padding: 16px; }
-h1 { margin-top: 0; }
 .intro, .panel { background: #192438; border: 1px solid #35445d; border-radius: 12px; padding: 16px; margin-bottom: 18px; }
 .ejemplo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
 h2 { font-size: 1.1rem; }
@@ -23,84 +22,142 @@ button.secundario { background: #34445d; color: white; }
 </head>
 <body>
 <header>
-  <h1>Callbacks vs. Promises</h1>
-  <p>Actividad 1 · JavaScript asíncrono</p>
+  <h1>Promises, Async y Await</h1>
+  <p>Actividad 2 · JavaScript asíncrono</p>
 </header>
 <main>
   <section class="intro">
     <h2>¿Qué vamos a aprender?</h2>
-    <p>Algunas tareas tardan en terminar. Por ejemplo, una aplicación puede necesitar esperar una respuesta de un servidor. JavaScript permite organizar esas tareas con callbacks y Promises.</p>
+    <p>Las Promises permiten trabajar con resultados futuros. Las palabras clave async y await ayudan a escribir ese código de forma más fácil de leer y entender.</p>
   </section>
   <section class="ejemplo">
     <article class="panel">
-      <h2>1. Callback</h2>
-      <pre><code>function buscarUsuario(callback) {
-  setTimeout(() => {
-    callback("Encontré a Mica");
-  }, 700);
-}
-
-buscarUsuario((mensaje) => {
-  console.log(mensaje);
-});</code></pre>
-    </article>
-    <article class="panel explicacion">
-      <h2>¿Cómo funciona en palabras simples?</h2>
-      <p>Un callback es una función que le entregamos a otra función para que la ejecute más tarde.</p>
-      <p>En este ejemplo, <code>buscarUsuario</code> simula una búsqueda. Después de 700 milisegundos, ejecuta la función que recibió y le pasa el mensaje.</p>
-      <p>Dicho de forma natural: <strong>“Cuando termines la búsqueda, avisame usando esta función”.</strong></p>
-      <p>Si hay muchas tareas encadenadas, los callbacks pueden hacer que el código sea más difícil de leer.</p>
-    </article>
-  </section>
-  <section class="ejemplo">
-    <article class="panel">
-      <h2>2. Promise</h2>
-      <pre><code>function buscarUsuario() {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve("Encontré a Mica");
-    }, 700);
+      <h2>1. Async y Await</h2>
+      <pre><code>function obtenerPuntaje() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(85), 700);
   });
 }
 
-buscarUsuario()
-  .then(mensaje => console.log(mensaje))
-  .catch(error => console.error(error));</code></pre>
+async function mostrarPuntaje() {
+  const puntaje = await obtenerPuntaje();
+  return `Tu puntaje es ${puntaje}`;
+}
+
+mostrarPuntaje().then(console.log);</code></pre>
     </article>
     <article class="panel explicacion">
       <h2>¿Cómo funciona en palabras simples?</h2>
-      <p>Una Promise representa un resultado que todavía no está disponible, pero que llegará más adelante o terminará en un error.</p>
-      <p><code>resolve</code> indica que la operación terminó correctamente. <code>reject</code> indica que falló.</p>
-      <p><code>.then()</code> recibe el resultado exitoso y <code>.catch()</code> permite manejar un error.</p>
-      <p>Dicho de forma natural: <strong>“Prometo darte el resultado cuando termine; si algo falla, te aviso”.</strong></p>
+      <p>La función <code>obtenerPuntaje</code> simula una operación que tarda un poco y después entrega el número 85.</p>
+      <p><code>async</code> declara una función asíncrona. <code>await</code> espera el resultado de una Promise dentro de esa función antes de continuar.</p>
+      <p>Dicho de forma natural: <strong>“Esperá a que llegue el puntaje y después armá el mensaje”.</strong></p>
+      <p>La espera no bloquea toda la aplicación: JavaScript puede continuar atendiendo otras tareas mientras llega el resultado.</p>
+    </article>
+  </section>
+  <section class="ejemplo">
+    <article class="panel">
+      <h2>2. Controlar errores</h2>
+      <pre><code>async function cargarPerfil(falla = false) {
+  try {
+    if (falla) {
+      throw new Error("No se pudo cargar");
+    }
+    return "Perfil cargado correctamente";
+  } catch (error) {
+    return `Ocurrió un problema: ${error.message}`;
+  }
+}
+
+cargarPerfil().then(console.log);
+cargarPerfil(true).then(console.log);</code></pre>
+    </article>
+    <article class="panel explicacion">
+      <h2>¿Cómo funciona en palabras simples?</h2>
+      <p>El bloque <code>try</code> contiene la operación que queremos intentar. Si ocurre un error, el control pasa a <code>catch</code>.</p>
+      <p><code>throw</code> genera un error de ejemplo para demostrar qué sucede cuando algo sale mal.</p>
+      <p>Dicho de forma natural: <strong>“Intentá cargar el perfil. Si no podés, capturá el problema y devolvé un mensaje”.</strong></p>
+      <p>Así podemos responder a los fallos de manera controlada en vez de dejar errores sin manejar.</p>
+    </article>
+  </section>
+  <section class="ejemplo">
+    <article class="panel">
+      <h2>3. Promise.all</h2>
+      <pre><code>const tarea = (nombre, tiempo) =>
+  new Promise(resolve => {
+    setTimeout(() => {
+      resolve(`${nombre}: listo`);
+    }, tiempo);
+  });
+
+async function iniciar() {
+  const resultados = await Promise.all([
+    tarea("Perfil", 700),
+    tarea("Mensajes", 1000)
+  ]);
+
+  return resultados;
+}
+
+iniciar().then(console.log);</code></pre>
+    </article>
+    <article class="panel explicacion">
+      <h2>¿Cómo funciona en palabras simples?</h2>
+      <p>Se crean dos tareas simuladas: cargar el perfil y cargar los mensajes. Cada una tarda un tiempo diferente.</p>
+      <p><code>Promise.all</code> espera a que todas las Promises terminen correctamente y devuelve sus resultados en una lista.</p>
+      <p>Dicho de forma natural: <strong>“Empezá las dos tareas y avisame cuando las dos estén listas”.</strong></p>
+      <p>Si alguna Promise falla, el resultado de <code>Promise.all</code> también falla. Por eso es importante planificar el manejo de errores.</p>
     </article>
   </section>
   <section class="panel">
-    <h2>3. Probá los ejemplos</h2>
-    <p>Elegí una opción para ver cómo se comporta cada ejemplo.</p>
-    <button onclick="ejecutarCallback()">Ejecutar callback</button>
-    <button onclick="ejecutarPromise()">Ejecutar Promise</button>
+    <h2>4. Probá los ejemplos</h2>
+    <button onclick="probarAwait()">Simular async/await</button>
+    <button onclick="probarError()">Simular error</button>
+    <button onclick="probarParalelo()">Simular tareas en paralelo</button>
     <button class="secundario" onclick="limpiar()">Limpiar</button>
     <div id="salida" class="salida">Esperando una prueba...</div>
   </section>
   <section class="panel">
     <h2>Conclusión</h2>
-    <p>Los callbacks permiten ejecutar una función después de una tarea. Las Promises representan resultados futuros y ofrecen una estructura clara para continuar el proceso o manejar un error.</p>
+    <p>Async y await hacen que el código basado en Promises sea más fácil de leer. Try/catch permite controlar errores, y Promise.all ayuda a esperar varias operaciones asíncronas.</p>
   </section>
   <p><a href="../index.html">Volver al índice principal</a></p>
 </main>
 <script>
-function ejecutarCallback() {
+function probarAwait() {
   const salida = document.getElementById("salida");
-  salida.textContent = "Callback: buscando usuario...";
-  setTimeout(() => { salida.textContent = "Callback: Encontré a Mica"; }, 700);
+  salida.textContent = "Esperando el puntaje...";
+  const obtener = () => new Promise(resolve => setTimeout(() => resolve(85), 700));
+  (async () => {
+    try {
+      const puntaje = await obtener();
+      salida.textContent = `Resultado: tu puntaje es ${puntaje}.`;
+    } catch (error) {
+      salida.textContent = "Error: " + error.message;
+    }
+  })();
 }
-function ejecutarPromise() {
+function probarError() {
   const salida = document.getElementById("salida");
-  salida.textContent = "Promise: esperando resultado...";
-  new Promise(resolve => { setTimeout(() => resolve("Encontré a Mica"), 700); })
-    .then(mensaje => { salida.textContent = "Promise: " + mensaje; })
-    .catch(error => { salida.textContent = "Ocurrió un error: " + error.message; });
+  salida.textContent = "Intentando cargar el perfil...";
+  (async () => {
+    try {
+      await new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error("Conexión de ejemplo fallida")), 500);
+      });
+    } catch (error) {
+      salida.textContent = "Error controlado: " + error.message;
+    }
+  })();
+}
+function probarParalelo() {
+  const salida = document.getElementById("salida");
+  salida.textContent = "Cargando perfil y mensajes en paralelo...";
+  const tarea = (nombre, tiempo) => new Promise(resolve => {
+    setTimeout(() => resolve(nombre + ": listo"), tiempo);
+  });
+  Promise.all([tarea("Perfil", 700), tarea("Mensajes", 1000)])
+    .then(resultados => { salida.textContent = resultados.join("\n"); })
+    .catch(error => { salida.textContent = "Error: " + error.message; });
 }
 function limpiar() {
   document.getElementById("salida").textContent = "Esperando una prueba...";
